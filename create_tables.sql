@@ -28,7 +28,7 @@ DROP TABLE IF EXISTS `players`;
 CREATE TABLE `players` (
   `player_id` int(11) NOT NULL AUTO_INCREMENT,
   `name` char(20) NOT NULL,
-  `role` enum('batsman','bowler','allrounder','wicketkeeper') NOT NULL,
+  `role` enum('GoalKeeper','Defender','Midfielder','Forward') NOT NULL,
   `price` int(11) NOT NULL,
   `image_url` char(50) NOT NULL,
   PRIMARY KEY (`player_id`)
@@ -39,30 +39,23 @@ LOCK TABLES `players` WRITE;
 
 INSERT INTO `players` (`player_id`, `name`, `role`, `price`, `image_url`)
 VALUES
-	(1,'Robin Uthappa','batsman',10,'/images/1.png'),
-	(2,'Dwayne Smith','batsman',10,'/images/2.png'),
-	(3,'Glenn Maxwell','batsman',20,'/images/3.png'),
-	(4,'David Warner','batsman',20,'/images/4.png'),
-	(5,'Suresh Raina','allrounder',20,'/images/5.png'),
-	(6,'Virender Sehwag','allrounder',10,'/images/6.png'),
-	(7,'David Miller','batsman',20,'/images/7.png'),
-	(8,'JP Duminy','batsman',10,'/images/8.png'),
-	(9,'Brendon McCullum','wicketkeeper',10,'/images/9.png'),
-	(10,'Manish Pandey','batsman',10,'/images/10.png'),
-	(11,'M S Dhoni','wicketkeeper',20,'/images/11.png'),
-	(12,'Adam Gilchrist','wicketkeeper',10,'/images/12.jpg'),
-	(13,'Dinesh Karthik','wicketkeeper',10,'/images/13.png'),
-	(14,'Rayudu','wicketkeeper',10,'/images/14.png'),
-	(15,'Ravindra Jadeja','allrounder',20,'/images/15.png'),
-	(16,'Yuvraj Singh','allrounder',10,'/images/16.png'),
-	(17,'Sunil Narine','bowler',20,'/images/17.png'),
-	(18,'Bhuvaneshwar Kumar','bowler',10,'/images/18.png'),
-	(19,'R Ashwin','bowler',10,'/images/19.png'),
-	(20,'Lasith Malinga','bowler',20,'/images/20.png'),
-	(21,'Kieron Pollard','allrounder',10,'/images/21.png'),
-	(22,'Varun Aaron','bowler',10,'/images/22.png'),
-	(23,'Mitchell Johnson','bowler',10,'/images/23.png'),
-	(24,'Dale Steyn','bowler',10,'/images/24.png');
+    (1,'Micheal Weche','GoalKeeper',2.5,'/'),
+    (2,'Ken Mutie','Defender',5.7,''),
+    (3,'Timothy Mumo','Defender',4.5,''),
+    (4,'Charles Gatura','Defender',5.5,''),
+    (5,'Mem Machoka','Defender',4.5,''),
+    (6,'Maldini','Defender',4.5,''),
+    (7,'Aleki','Midfielder',5.0,''),
+    (8,'Kilonzo','Midfielder',4.5,''),
+    (9,'Bonny Dismus','Midfielder',6.0,'/images/Dismus.png'),
+    (10,'Fredrick Odhiambo','Midfielder',6.0,''),
+    (11,'Leon Micheni','Forward',12.5,'/images/Leon.png'),
+    (12,'Buju','Forward',12.5,''),
+    (13,'Leone Mmayi','Forward',9.0,''),
+    (14,'Francis Brandon','Forward',7.5,'/images/12.png.jpeg'),
+    (15,'Moore Lefty','Forward',7.5,''),
+    (16,'Bonny Gisore','Forward',6.0,''),
+    (17,'John Ngethe','Forward',4.,'');
 
 /*!40000 ALTER TABLE `players` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -115,10 +108,7 @@ VALUES
 	(1,2),
 	(1,4),
 	(1,9),
-	(1,15),
-	(1,19),
-	(1,22),
-	(1,24);
+	(1,15);
 
 /*!40000 ALTER TABLE `user_team` ENABLE KEYS */;
 UNLOCK TABLES;

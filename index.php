@@ -4,6 +4,9 @@
 	$_SESSION["userId"] = "1";	// Taken as 1 for GUEST user.
 	require "dbSettings.php";
 	include_once "model.php";
+ini_set('log_errors', 1);
+ini_set('error_log', 'C:/xampp/php_errors.log'); // Adjust path as needed
+error_reporting(E_ALL);
 	
 
 		
@@ -11,7 +14,7 @@
 		$arrOfPlayerObj = array();
 		
 		$sql = "SELECT * FROM players";
-		$con=mysqli_connect(db_host,db_user,db_password,db_name);
+		$con=mysqli_connect("localhost","root","","fantasy_league");
 		if (mysqli_connect_errno()) {
   			echo "Failed to connect to MySQL: " . mysqli_connect_error();
  		}
@@ -22,7 +25,13 @@
 			$player->name = $row['name'];
 			$player->role = $row['role'];
 			$player->price = $row['price'];
-			$player->imageUrl = $row['image_url'];
+			// Normalize image URL so it points to this app's images folder
+			$img = $row['image_url'];
+			if(strpos($img, '/') === 0){
+				$player->imageUrl = "/Fantasy" . $img; // leading slash paths -> /Fantasy/images/...
+			} else {
+				$player->imageUrl = "/Fantasy/" . $img;
+			}
 			array_push($arrOfPlayerObj,$player);
 		}
 		return $arrOfPlayerObj;
@@ -42,6 +51,8 @@
 	$playerList = fetchPlayerList(); 
 	$userInfo = new user(intval($_SESSION['userId']));
 	$userInfo->getUserInfo();
+	// Force single-team mode name
+	$userInfo->teamName = "FC FOOSA";
 	
 
 
@@ -49,12 +60,12 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css">
- 		<link rel = "stylesheet" type = "text/css" href = "/css/stylesheet.css">
+		<link rel = "stylesheet" type = "text/css" href = "css/stylesheet.css">
 	</head>
  	<body>
  		<div class = "masthead">
  			<div class = "logo">
- 				FANTASY LEAGUE 2015
+ 				FANTASY LEAGUE 2025
  			</div>
  			<span class="login-welcome" id = "login-welcome">WELCOME </span>
  		</div>
@@ -66,20 +77,24 @@
  				</span>
  			</div>
  			<div class = "balance-box" id = "balance-box">
- 				<span class= "heading-banner"> BALANCE($mn)</span>
+ 				<span class= "heading-banner"> BALANCE($60)</span>
  				<span id = "balance" style = "line-height:44px;"></span>
 
  			</div>
  			<div class = "rules-box">
  				<span class= "heading-banner"> RULES</span>
  				<ul>
- 					<li>3 batsmen, 1 wicketkeeper, 2 all rounders, 2 bowlers</li>
-					<li>3 batsmen, 1 wicketkeeper, 1 all rounders, 3 bowlers</li>
-					<li>4 batsmen, 1 wicketkeeper, 1 all rounders, 2 bowlers</li>
+ 					<li>1 goalkeeper, 2 defender, 2 midfielder, 3 forward</li>
 				</ul>
  			</div>
  			<div class = "team-box" id = "team-box">
- 				 				
+					<div class="formation">
+						<div id="goal-row" class="formation-row"></div>
+						<div id="def-row" class="formation-row"></div>
+						<div id="mid-row" class="formation-row"></div>
+						<div id="for-row" class="formation-row"></div>
+						<div id="subs-row" class="formation-row subs"></div>
+					</div>
  			</div>
  			
  			<div class = "players-box" id ="players-box">
@@ -107,7 +122,7 @@
 
  		</div>
  		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
- 		<script src = "/scripts/script.js"></script>
+		<script src = "scripts/script.js"></script>
  	<script>
  		
  		var playerList = <?php
@@ -118,11 +133,40 @@
 			echo json_encode($userInfo);
 		?>;
 
+		// If no team exists for the user, populate a default FC FOOSA starting XI
+		if(!userInfo.team || userInfo.team.length === 0){
+			var defaultTeamIds = [1,2,3,4,6,7,8,9,10,11,12]; // GK, Def, Def, Def, Mid x4, For x3
+			userInfo.team = [];
+			for(var i=0;i<defaultTeamIds.length;i++){
+				var p = playerInfo(defaultTeamIds[i], playerList);
+				if(p) userInfo.team.push(p);
+			}
+		}
+
+		// Initialize starters and bench according to limits: 1 GK,2 Def,2 Mid,3 For
+		if(!userInfo.starters){
+			userInfo.starters = [];
+			userInfo.bench = [];
+			var starterLimits = { 'GoalKeeper':1, 'Defender':2, 'Midfielder':2, 'Forward':3 };
+			for(var i=0;i<userInfo.team.length;i++){
+				var p = userInfo.team[i];
+				var role = p.role;
+				var cnt = 0;
+				for(var j=0;j<userInfo.starters.length;j++){
+					if(userInfo.starters[j].role === role) cnt++;
+				}
+				if(cnt < (starterLimits[role] || 0)) userInfo.starters.push(p);
+				else userInfo.bench.push(p);
+			}
+		}
+
 		updateBalance(); //Display the balance for the first time the user logs in
 		updateComposition(); //Dispay the team composition for the first time the user logs in
 		document.getElementById("login-welcome").innerHTML+=userInfo.username;	//Display the username
 		document.getElementById("teamname-input").setAttribute("value",userInfo.teamName); // Display the teamName
-		document.getElementById("last-updated-on").innerHTML = userInfo.lastUpdatedOn;	//Display last_updated_on
+		document.getElementById("teamname-input").setAttribute("value",userInfo.teamName); // Display the teamName
+		document.getElementById("teamname-input").readOnly = true; // single-team mode: don't allow edits
+		document.getElementById("teamname-submit").style.display = 'none'; // Hide the edit button
 		
 		for(var i=0;i<playerList.length;i++){	// Traverse through all players
 			if(searchTeam(playerList[i].playerId) ==-1) {
